@@ -185,25 +185,27 @@ function useTheDamnVariables()
                         savedTick = currentTick
                     end
                 else
-                    if (currentTick - nameChangeTimer > tick * onion_level_namechanger_timer:GetValue()) then
-                        local teamNames = { }
+                    if (isSpectating == false) then
+                        if (currentTick - nameChangeTimer > tick * onion_level_namechanger_timer:GetValue()) then
+                            local teamNames = { }
 
-                        for i = globals.MaxClients(), 1, -1 do
-                            if (i ~= client.GetLocalPlayerIndex()) then
-                                local team = playerResources:GetPropInt("m_iTeam", i)
-                                if (localPlayer:GetTeamNumber() == team) then
-                                    local name = client.GetPlayerNameByIndex(i)
-                                    table.insert(teamNames, name)
+                            for i = globals.MaxClients(), 1, -1 do
+                                if (i ~= client.GetLocalPlayerIndex()) then
+                                    local team = playerResources:GetPropInt("m_iTeam", i)
+                                    if (localPlayer:GetTeamNumber() == team) then
+                                        local name = client.GetPlayerNameByIndex(i)
+                                        table.insert(teamNames, name)
+                                    end
                                 end
                             end
-                        end
 
-                        if (teamNames ~= nil) then
-                            client.SetConVar("name", teamNames[math.random(#teamNames)] .. " ")
-                        end
+                            if (teamNames ~= nil) then
+                                client.SetConVar("name", teamNames[math.random(#teamNames)] .. " ")
+                            end
 
-                        nameChangeTimer = currentTick
-                        return
+                            nameChangeTimer = currentTick
+                            return
+                        end
                     end
                 end
             end
