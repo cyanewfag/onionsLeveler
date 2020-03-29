@@ -160,6 +160,67 @@ function gatherVariables()
 end
 
 function useTheDamnVariables()
+    if (onion_level_hud_enabled:GetValue()) then
+        if (onion_level_hud_enabled_ingame:GetValue()) then
+            if (localPlayer == nil) then
+                return
+            end
+        end
+
+        local yOffset = onion_level_hud_position_y:GetValue()
+        local hudPos = onion_level_hud_position:GetValue()
+        local hudText = "Not Ingame"
+
+        if (localPlayer ~= nil) then
+            hudText = "Ping: " .. ping .. "ms | Tickrate: " .. tick .. " | Username: " .. username .. " | Score: " .. score .. " | Kills: " .. kills .. " | Deaths: " .. deaths
+
+            if (isSpectating) then
+                hudText = hudText .. " | Anti-AFK Time: " .. math.floor(currentAfkWait) .. " Seconds"
+            end
+        end
+
+        if (hudPos == 0) then
+            renderHud(yOffset, 0, hudText)
+        else
+            renderHud(yOffset, 1, hudText)
+        end
+    end
+
+    if (onion_level_namechanger:GetValue()) then
+        if (localPlayer ~= nil) then
+            if (invisibleName == false) then
+                if (currentTick - savedTick > tick / 2) then
+                    invisibleName = true
+                    client.SetConVar("name", "\n\xAD\xAD\xAD")
+                    savedTick = currentTick
+                end
+            else
+                if (isSpectating == false) then
+                    if (currentTick - nameChangeTimer > tick * onion_level_namechanger_timer:GetValue()) then
+                        local teamNames = { }
+
+                        for i = globals.MaxClients(), 1, -1 do
+                            if (i ~= client.GetLocalPlayerIndex()) then
+                                local team = playerResources:GetPropInt("m_iTeam", i)
+                                if (localPlayer:GetTeamNumber() == team) then
+                                    local name = client.GetPlayerNameByIndex(i)
+                                    table.insert(teamNames, name)
+                                end
+                            end
+                        end
+
+                        if (teamNames ~= nil) then
+                            client.SetConVar("name", teamNames[math.random(#teamNames)] .. " ")
+                        end
+
+                        nameChangeTimer = currentTick
+                        return
+                    end
+                end
+            end
+        end
+    end
+
     if (onion_level_enabled:GetValue()) then
         if (onion_level_autospectate_enabled:GetValue()) then
             if (isSpectating ~= true and disabled ~= true) then
@@ -173,43 +234,8 @@ function useTheDamnVariables()
                 end
             end
         end
-
+    
         local fuckVariableNaming = onion_level_antiafk_timer:GetValue()
-
-        if (onion_level_namechanger:GetValue()) then
-            if (localPlayer ~= nil) then
-                if (invisibleName == false) then
-                    if (currentTick - savedTick > tick / 2) then
-                        invisibleName = true
-                        client.SetConVar("name", "\n\xAD\xAD\xAD")
-                        savedTick = currentTick
-                    end
-                else
-                    if (isSpectating == false) then
-                        if (currentTick - nameChangeTimer > tick * onion_level_namechanger_timer:GetValue()) then
-                            local teamNames = { }
-
-                            for i = globals.MaxClients(), 1, -1 do
-                                if (i ~= client.GetLocalPlayerIndex()) then
-                                    local team = playerResources:GetPropInt("m_iTeam", i)
-                                    if (localPlayer:GetTeamNumber() == team) then
-                                        local name = client.GetPlayerNameByIndex(i)
-                                        table.insert(teamNames, name)
-                                    end
-                                end
-                            end
-
-                            if (teamNames ~= nil) then
-                                client.SetConVar("name", teamNames[math.random(#teamNames)] .. " ")
-                            end
-
-                            nameChangeTimer = currentTick
-                            return
-                        end
-                    end
-                end
-            end
-        end
 
         if (onion_level_antiafk_enabled:GetValue()) then
             if (isSpectating) then
@@ -220,32 +246,6 @@ function useTheDamnVariables()
                 else
                     currentAfkWait = (((tick * fuckVariableNaming) - (currentTick - savedTick)) / 60)
                 end
-            end
-        end
-
-        if (onion_level_hud_enabled:GetValue()) then
-            if (onion_level_hud_enabled_ingame:GetValue()) then
-                if (localPlayer == nil) then
-                    return
-                end
-            end
-
-            local yOffset = onion_level_hud_position_y:GetValue()
-            local hudPos = onion_level_hud_position:GetValue()
-            local hudText = "Not Ingame"
-
-            if (localPlayer ~= nil) then
-                hudText = "Ping: " .. ping .. "ms | Tickrate: " .. tick .. " | Username: " .. username .. " | Score: " .. score .. " | Kills: " .. kills .. " | Deaths: " .. deaths
-
-                if (isSpectating) then
-                    hudText = hudText .. " | Anti-AFK Time: " .. math.floor(currentAfkWait) .. " Seconds"
-                end
-            end
-
-            if (hudPos == 0) then
-                renderHud(yOffset, 0, hudText)
-            else
-                renderHud(yOffset, 1, hudText)
             end
         end
     end
