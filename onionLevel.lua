@@ -19,10 +19,12 @@ local onion_level_antiafk_enabled = gui.Checkbox(onion_window_groupbox_1, 'onion
 local onion_level_antiafk_style = gui.Combobox(onion_window_groupbox_1, 'onion_level_antiafk_style', 'Anti-AFK Style', "Text Refresh")
 local onion_level_antiafk_timer = gui.Slider(onion_window_groupbox_1, 'onion_level_antiafk_timer', 'Anti-AFK (Seconds)', 2, 2, 270, 2)
 local onion_level_walkbot = gui.Checkbox(onion_window_groupbox_1, 'onion_level_walkbot', 'Walkbot (Out of Order)', false)
+local onion_level_namechanger = gui.Checkbox(onion_window_groupbox_1, 'onion_level_namechanger', 'Name Changer', true)
+local onion_level_namechanger_timer = gui.Slider(onion_window_groupbox_1, 'onion_level_namechanger_timer', 'Name Change (Seconds)', 2, 1, 24)
 local onion_level_autocfg = gui.Button(onion_window_groupbox_1, 'Auto-Config', setConfig)
 
 -- HUD Settings
-local onion_window_groupbox_2 = gui.Groupbox(onion_level_window, 'HUD Settings', 15, 420)
+local onion_window_groupbox_2 = gui.Groupbox(onion_level_window, 'HUD Settings', 15, 505)
 local onion_level_hud_enabled = gui.Checkbox(onion_window_groupbox_2, 'onion_level_hud_enabled', 'Enabled', true)
 local onion_level_hud_enabled_ingame = gui.Checkbox(onion_window_groupbox_2, 'onion_level_hud_enabled_ingame', 'In-Game Check', false)
 local onion_level_hud_position_y = gui.Slider(onion_window_groupbox_2, 'onion_level_hud_position_y', 'Y Offset', 15, 0, 200, 5)
@@ -45,6 +47,8 @@ local currentTick = 0
 local disabled = false
 local currentAfkWait = 0
 local currentTeam = 1
+local nameChangeTimer = 0
+local invisibleName = false
 local textFont = draw.CreateFont( "Verdana", 13 )
 
 --
@@ -151,6 +155,7 @@ function gatherVariables()
         disabled = false
         username = ""
         savedTick = currentTick
+        invisibleName = false
     end
 end
 
@@ -170,6 +175,39 @@ function useTheDamnVariables()
         end
 
         local fuckVariableNaming = onion_level_antiafk_timer:GetValue()
+
+        if (onion_level_namechanger:GetValue()) then
+            if (localPlayer ~= nil) then
+                if (invisibleName == false) then
+                    if (currentTick - savedTick > tick / 2) then
+                        invisibleName = true
+                        client.SetConVar("name", "\n\xAD\xAD\xAD")
+                        savedTick = currentTick
+                    end
+                else
+                    if (currentTick - nameChangeTimer > tick * onion_level_namechanger_timer:GetValue()) then
+                        local teamNames = { }
+
+                        for i = globals.MaxClients(), 1, -1 do
+                            if (i ~= client.GetLocalPlayerIndex()) then
+                                local team = playerResources:GetPropInt("m_iTeam", i)
+                                if (localPlayer:GetTeamNumber() == team) then
+                                    local name = client.GetPlayerNameByIndex(i)
+                                    table.insert(teamNames, name)
+                                end
+                            end
+                        end
+
+                        if (teamNames ~= nil) then
+                            client.SetConVar("name", teamNames[math.random(#teamNames)] .. " ")
+                        end
+
+                        nameChangeTimer = currentTick
+                        return
+                    end
+                end
+            end
+        end
 
         if (onion_level_antiafk_enabled:GetValue()) then
             if (isSpectating) then
